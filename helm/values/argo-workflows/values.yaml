@@ -1,0 +1,30 @@
+server:
+  extraArgs:
+    - --auth-mode=server
+
+workflow:
+  serviceAccount:
+    create: true
+    name: "argo-workflow"
+  rbac:
+    create: true
+controller:
+  workflowNamespaces:
+    - raas-pipeline
+  metricsConfig:
+    # -- Enables prometheus metrics server
+    enabled: true
+  serviceMonitor:
+    # -- Enable a prometheus ServiceMonitor
+    enabled: true
+
+
+
+logging:
+  # -- Set the logging level (one of: `debug`, `info`, `warn`, `error`)
+  #  level: info
+  # -- Set the glog logging level
+  #  globallevel: "0"
+  # -- Set the logging format (one of: `text`, `json`)
+  format: "json"
+

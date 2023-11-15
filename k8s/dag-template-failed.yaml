@@ -1,0 +1,126 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: workflow-template-inner-dag
+spec:
+  entrypoint: inner-diamond
+  metrics:
+    prometheus:
+      - name: diamond_workflow_test_gauge
+        help: "diamond_workflow_test_gauge"
+        gauge:
+          value: "2"
+  templates:
+    - name: notify-job-management
+      inputs:
+        parameters:
+          - name: task_id
+          - name: task_name
+          - name: task_status
+      container:
+        image: docker/whalesay
+        command: [ cowsay ]
+        args: [ "{{inputs.parameters.task_name}}" ]
+    - name: whalesay-template
+      inputs:
+        parameters:
+          - name: message
+      container:
+        image: docker/whalesay
+        command: [ cowsay ]
+        args: [ "{{inputs.parameters.message}}" ]
+    - name: whalesay-template-with-metrics
+      metrics:
+        prometheus:
+          - name: diamond_task_test_counter
+            labels:
+              - key: task_name
+                value: "{{inputs.parameters.task_name}}"
+            help: "diamond_task_test_counter"
+            counter:
+              value: "1"
+      inputs:
+        parameters:
+          - name: task_name
+      container:
+        image: docker/whalesay
+        command: [ cowsay ]
+        args: [ "{{inputs.parameters.task_name}}" ]
+    - name: task-exit-handler-1
+      inputs:
+        parameters:
+          - name: message
+            value: "boog1"
+      container:
+        image: alpine:latest
+        command: [sh, -c]
+        args: ["echo task_status={{status}} workflow_name={{workflow.name}}, workflow_status={{workflow.status}}, workflow_duration={{workflow.duration}}. message={{inputs.parameters.message}}"]
+    - name: task-exit-handler-2
+      inputs:
+        parameters:
+          - name: task_name
+          - name: task_status
+      container:
+        image: alpine:latest
+        command: [sh, -c]
+        args: ["echo task_status={{inputs.parameters.task_status}}, task_name={{inputs.parameters.task_name}} workflow_name={{workflow.name}}, workflow_status={{workflow.status}}, workflow_duration={{workflow.duration}}"]
+    - name: inner-diamond
+      dag:
+        tasks:
+          - name: innerA
+            hooks:
+              exit:
+                template: task-exit-handler-2
+                arguments:
+                  parameters:
+                    - name: task_name
+                      value: "innerA"
+                    - name: task_status
+                      value: "{{tasks.innerA.status}}"
+              success:
+                template: notify-job-management
+                arguments:
+                  parameters:
+                    - name: task_id
+                      value: '{{`{{workflow.name}}`}}-innerA'
+                    - name: task_name
+                      value: start
+                    - name: task_status
+                      value: SUCCESSFUL
+                expression: tasks["innerA"].status == "Succeeded"
+
+            template: whalesay-template-with-metrics
+            arguments:
+              parameters:
+                - name: task_name
+                  value: "innerA"
+          - name: innerB
+            hooks:
+              exit:
+                template: task-exit-handler-2
+                arguments:
+                  parameters:
+                    - name: task_name
+                      value: "innerB"
+                    - name: task_status
+                      value: "{{tasks.innerB.status}}"
+            depends: "innerA"
+            template: whalesay-template-with-metrics
+            arguments:
+              parameters:
+                - name: task_name
+                  value: "innerB"
+          - name: inner-C
+            depends: "innerA"
+            template: whalesay-template
+            arguments:
+              parameters:
+                - name: message
+                  value: inner-C
+          - name: inner-D
+            depends: "innerB && inner-C"
+            template: whalesay-template
+            arguments:
+              parameters:
+                - name: message
+                  value: inner-D

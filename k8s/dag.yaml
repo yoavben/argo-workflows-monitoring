@@ -1,0 +1,168 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: dag-diamond-
+spec:
+  arguments:
+    parameters:
+      - name: job_name
+        value: raas-pipeline-25
+  entrypoint: diamond
+  metrics:
+    prometheus:
+      - name: rpu_workflow_duration_gauge
+        labels:
+            - key: job_id
+              value: "{{workflow.name}}"
+            - key: job_name
+              value: "{{workflow.parameters.job_name}}"
+            - key: name
+              value: "{{workflow.name}}"
+            - key: status
+              value: "{{status}}"
+            - key: workflow_namespace
+              value: "{{workflow.namespace}}"
+        help: "rpu_workflow_duration_gauge"
+        gauge:
+          value: "{{workflow.duration}}"  # Use {{workflow.duration}} in workflow-level and {{duration}} in template-level
+      - name: rpu_workflow_result_counter
+        labels:
+            - key: job_id
+              value: "{{workflow.name}}"
+            - key: job_name
+              value: "{{workflow.parameters.job_name}}"
+            - key: name
+              value: "{{workflow.name}}"
+            - key: status
+              value: "{{status}}"
+            - key: workflow_namespace
+              value: "{{workflow.namespace}}"
+        help: "rpu_workflow_result_counter"
+        counter:
+          value: "1"
+
+  templates:
+
+    - name: echo
+      metrics:
+        prometheus:
+          - name: rpu_task_result_counter
+            labels:
+              - key: job_id
+                value: "{{workflow.name}}"
+              - key: job_name
+                value: "{{workflow.parameters.job_name}}"
+              - key: task_status
+                value: "{{status}}"
+              - key: task_name
+                value: "{{inputs.parameters.task_name}}"
+              - key: workflow_namespace
+                value: "{{workflow.namespace}}"
+            help: "rpu_task_result_counter"
+            counter:
+              value: "1"
+          - name: rpu_task_duration_gauge
+            labels:
+              - key: job_id
+                value: "{{workflow.name}}"
+              - key: job_name
+                value: "{{workflow.parameters.job_name}}"
+              - key: task_status
+                value: "{{status}}"
+              - key: task_name
+                value: "{{inputs.parameters.task_name}}"
+              - key: workflow_namespace
+                value: "{{workflow.namespace}}"
+            help: "rpu_task_duration_gauge"
+            gauge:
+              value: "{{duration}}"
+      inputs:
+        parameters:
+          - name: task_name
+      container:
+        image: alpine:3.7
+        command: [echo, "{{inputs.parameters.task_name}}"]
+    - name: sleep-long
+      metrics:
+        prometheus:
+          - name: rpu_task_result_counter
+            labels:
+              - key: job_id
+                value: "{{workflow.name}}"
+              - key: job_name
+                value: "{{workflow.parameters.job_name}}"
+              - key: task_status
+                value: "{{status}}"
+              - key: task_name
+                value: "{{inputs.parameters.task_name}}"
+              - key: workflow_namespace
+                value: "{{workflow.namespace}}"
+            help: "rpu_task_result_counter"
+            counter:
+              value: "1"
+          - name: rpu_task_duration_gauge
+            labels:
+              - key: job_id
+                value: "{{workflow.name}}"
+              - key: job_name
+                value: "{{workflow.parameters.job_name}}"
+              - key: task_status
+                value: "{{status}}"
+              - key: task_name
+                value: "{{inputs.parameters.task_name}}"
+              - key: workflow_namespace
+                value: "{{workflow.namespace}}"
+            help: "rpu_task_duration_gauge"
+            gauge:
+              value: "{{duration}}"
+      inputs:
+        parameters:
+          - name: task_name
+          - name: sleep_in_seconds
+            value: "5"
+          - name: exit_code
+            value: "0"
+      container:
+        image: ubuntu:latest
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "sleep $((RANDOM % 3+{{inputs.parameters.sleep_in_seconds}}))" ]
+    - name: diamond
+      dag:
+        tasks:
+          - name: start
+            template: sleep-long
+            arguments:
+              parameters:
+                - name: task_name
+                  value: start
+                - name: sleep_in_seconds
+                  value: "1"
+          - name: s3-uploader
+            dependencies: [start]
+            template: sleep-long
+            arguments:
+              parameters:
+                - name: task_name
+                  value: s3-uploader
+                - name: sleep_in_seconds
+                  value: "2"
+          - name: boardnet-converter
+            dependencies: [start]
+            template: sleep-long
+            arguments:
+              parameters:
+                - name: task_name
+                  value: boardnet-converter
+                - name: sleep_in_seconds
+                  value: "4"
+
+          - name: s3-downloader
+            dependencies: [s3-uploader, boardnet-converter]
+            template: sleep-long
+            arguments:
+              parameters:
+                - name: task_name
+                  value: s3-downloader
+                - name: sleep_in_seconds
+                  value: "2"
+
