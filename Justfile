@@ -16,7 +16,7 @@ rpu-workflows-namespace-create:
 
 argo-workfklows-helm-upgrade:
 	helm upgrade --install argo-workflows argo/argo-workflows \
-		--namespace raas-argo-workflows-system \
+		--namespace raas-argo-workflows \
 		--create-namespace \
 		--values helm/values/argo-workflows/values.yaml;
 
@@ -26,8 +26,8 @@ argo-workfklows-helm-upgrade:
 
 
 
-#prometheus-stack-helm-show-values:
-#    helm show values prometheus-community/kube-prometheus-stack > values.yaml
+prometheus-stack-helm-show-values:
+    helm show values prometheus-community/kube-prometheus-stack > prometheus-stack-values.yaml
 
 #workflow-controller-metrics-servicemonitor-apply:
 #    kubectl apply -n argo -f k8s/workflow-controller-metrics-servicemonitor.yaml
@@ -41,8 +41,8 @@ prometheus-port-forward:
 prometheus-ui-open:
     open http://localhost:9090
 
-workflow-hello-world-submit:
-    argo submit https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml --watch -n raas-pipeline
+#workflow-hello-world-submit:
+#    argo submit https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml --watch -n raas-pipeline
 
 grafana-port-forward:
     kubectl port-forward svc/prometheus-grafana 8000:80 -n prometheus
@@ -101,5 +101,12 @@ delete-promethues-data:
    curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={job="argo-workflows-workflow-controller"}';
    kubectl delete pods --all  -n raas-argo-workflows-system;
 
+
+grafana-dashboars-configmap-create:
+      kubectl create configmap grafana-dashboards --from-file=dashboards -n prometheus;
+      kubectl label configmap grafana-dashboards grafana_dashboard=true -n prometheus;
+
+grafana-dashboars-configmap-to-file:
+      kubectl get configmap grafana-dashboards -o yaml -n prometheus > grafana-dashboards-configmap.yaml
 
 
