@@ -53,8 +53,10 @@ grafana-secret:
 grafaba-open-ui:
     open "http://localhost:8000"
 
-workflow-dag-submit:
+workflow-dag-submit-fast:
     argo submit -n raas-pipeline k8s/dag.yaml --watch
+workflow-dag-submit-slow:
+    argo submit -n raas-pipeline k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" --watch
 
 
 workflow-dag-template-apply:
@@ -83,7 +85,7 @@ argo-workflows-ui-open:
 
 
 service-port-forward:
-    kubectl port-forward service/argo-workflows-workflow-controller 8080:8080 --namespace raas-argo-workflows-system
+    kubectl port-forward service/argo-workflows-workflow-controller 8080:8080 --namespace raas-argo-workflows
 
 #create-service:
 #    kubectl expose deployment raas-argo-workflows-system-workflow-controller --name argo-workflows-controller-service --port 8080 --target-port=9090

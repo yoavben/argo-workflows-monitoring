@@ -7,37 +7,41 @@ spec:
     parameters:
       - name: job_name
         value: raas-pipeline-25
+      - name: docker_version
+        value: "2023.11.6"
+      - name: delay
+        value: "0"
   entrypoint: diamond
   metrics:
     prometheus:
-      - name: rpu_workflow_duration_gauge
+      - name: rpu_workflows_duration_gauge
         labels:
-            - key: job_id
-              value: "{{workflow.name}}"
-            - key: job_name
-              value: "{{workflow.parameters.job_name}}"
-            - key: name
-              value: "{{workflow.name}}"
-            - key: status
-              value: "{{status}}"
-            - key: workflow_namespace
-              value: "{{workflow.namespace}}"
-        help: "rpu_workflow_duration_gauge"
+          - key: job_id
+            value: "{{workflow.name}}"
+          - key: job_name
+            value: "{{workflow.parameters.job_name}}"
+          - key: name
+            value: "{{workflow.name}}"
+          - key: status
+            value: "{{status}}"
+          - key: workflow_namespace
+            value: "{{workflow.namespace}}"
+        help: "rpu_workflows_duration_gauge"
         gauge:
           value: "{{workflow.duration}}"  # Use {{workflow.duration}} in workflow-level and {{duration}} in template-level
-      - name: rpu_workflow_result_counter
+      - name: rpu_workflows_result_counter
         labels:
-            - key: job_id
-              value: "{{workflow.name}}"
-            - key: job_name
-              value: "{{workflow.parameters.job_name}}"
-            - key: name
-              value: "{{workflow.name}}"
-            - key: status
-              value: "{{status}}"
-            - key: workflow_namespace
-              value: "{{workflow.namespace}}"
-        help: "rpu_workflow_result_counter"
+          - key: job_id
+            value: "{{workflow.name}}"
+          - key: job_name
+            value: "{{workflow.parameters.job_name}}"
+          - key: name
+            value: "{{workflow.name}}"
+          - key: status
+            value: "{{status}}"
+          - key: workflow_namespace
+            value: "{{workflow.namespace}}"
+        help: "rpu_workflows_result_counter"
         counter:
           value: "1"
 
@@ -58,6 +62,8 @@ spec:
                 value: "{{inputs.parameters.task_name}}"
               - key: workflow_namespace
                 value: "{{workflow.namespace}}"
+              - key: docker_version
+                value: "{{inputs.parameters.docker_version}}"
             help: "rpu_task_result_counter"
             counter:
               value: "1"
@@ -73,15 +79,18 @@ spec:
                 value: "{{inputs.parameters.task_name}}"
               - key: workflow_namespace
                 value: "{{workflow.namespace}}"
+              - key: docker_version
+                value: "{{inputs.parameters.docker_version}}"
             help: "rpu_task_duration_gauge"
             gauge:
               value: "{{duration}}"
       inputs:
         parameters:
           - name: task_name
+          - name: docker_version
       container:
         image: alpine:3.7
-        command: [echo, "{{inputs.parameters.task_name}}"]
+        command: [ echo, "{{inputs.parameters.task_name}}" ]
     - name: sleep-long
       metrics:
         prometheus:
@@ -97,6 +106,8 @@ spec:
                 value: "{{inputs.parameters.task_name}}"
               - key: workflow_namespace
                 value: "{{workflow.namespace}}"
+              - key: docker_version
+                value: "{{inputs.parameters.docker_version}}"
             help: "rpu_task_result_counter"
             counter:
               value: "1"
@@ -112,6 +123,8 @@ spec:
                 value: "{{inputs.parameters.task_name}}"
               - key: workflow_namespace
                 value: "{{workflow.namespace}}"
+              - key: docker_version
+                value: "{{inputs.parameters.docker_version}}"
             help: "rpu_task_duration_gauge"
             gauge:
               value: "{{duration}}"
@@ -119,9 +132,11 @@ spec:
         parameters:
           - name: task_name
           - name: sleep_in_seconds
-            value: "5"
+            value: "{{=asInt(workflow.parameters.delay) + 5}}"
           - name: exit_code
             value: "0"
+          - name: docker_version
+            value: "2023.11.6"
       container:
         image: ubuntu:latest
         command: [ "/bin/bash", "-c", "--" ]
@@ -136,33 +151,41 @@ spec:
                 - name: task_name
                   value: start
                 - name: sleep_in_seconds
-                  value: "1"
+                  value: "{{=asInt(workflow.parameters.delay) + 1}}"
+                - name: docker_version
+                  value: "{{workflow.parameters.docker_version}}"
           - name: s3-uploader
-            dependencies: [start]
+            dependencies: [ start ]
             template: sleep-long
             arguments:
               parameters:
                 - name: task_name
                   value: s3-uploader
                 - name: sleep_in_seconds
-                  value: "2"
+                  value: "{{=asInt(workflow.parameters.delay) + 2}}"
+                - name: docker_version
+                  value: "{{workflow.parameters.docker_version}}"
           - name: boardnet-converter
-            dependencies: [start]
+            dependencies: [ start ]
             template: sleep-long
             arguments:
               parameters:
                 - name: task_name
                   value: boardnet-converter
                 - name: sleep_in_seconds
-                  value: "4"
-
+                  value: "{{=asInt(workflow.parameters.delay) + 4}}"
+                - name: docker_version
+                  value: "{{workflow.parameters.docker_version}}"
           - name: s3-downloader
-            dependencies: [s3-uploader, boardnet-converter]
+            dependencies: [ s3-uploader, boardnet-converter ]
             template: sleep-long
             arguments:
               parameters:
                 - name: task_name
                   value: s3-downloader
                 - name: sleep_in_seconds
-                  value: "2"
+                  value: "{{=asInt(workflow.parameters.delay) + 2}}"
+                - name: docker_version
+                  value: "{{workflow.parameters.docker_version}}"
+
 
