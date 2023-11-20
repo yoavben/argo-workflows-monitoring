@@ -86,7 +86,7 @@
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "argo_workflows_rpu_workflow_result_counter{workflow_namespace=\"$workflow_namespace\", status=\"$workflow_status\", job_name=\"$job_name\"}",
+          "expr": "argo_workflows_rpu_workflows_result_counter{workflow_namespace=\"$workflow_namespace\", status=\"$workflow_status\", job_name=\"$job_name\"}",
           "format": "table",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -245,7 +245,7 @@
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "topk(5, argo_workflows_rpu_workflow_duration_gauge{job_name=\"$job_name\", workflow_namespace=\"$workflow_namespace\", status=\"$workflow_status\"})",
+          "expr": "topk(5, argo_workflows_rpu_workflows_duration_gauge{job_name=\"$job_name\", workflow_namespace=\"$workflow_namespace\", status=\"$workflow_status\"})",
           "format": "table",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
@@ -333,7 +333,7 @@
           "disableTextWrap": false,
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "avg(argo_workflows_rpu_workflow_duration_gauge)",
+          "expr": "avg(argo_workflows_rpu_workflows_duration_gauge)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": true,
@@ -363,7 +363,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(argo_workflows_rpu_workflow_result_counter,status)",
+        "definition": "label_values(argo_workflows_rpu_workflows_result_counter,status)",
         "hide": 0,
         "includeAll": true,
         "label": "",
@@ -371,7 +371,7 @@
         "name": "workflow_status",
         "options": [],
         "query": {
-          "query": "label_values(argo_workflows_rpu_workflow_result_counter,status)",
+          "query": "label_values(argo_workflows_rpu_workflows_result_counter,status)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -390,7 +390,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(argo_workflows_rpu_workflow_result_counter,workflow_namespace)",
+        "definition": "label_values(argo_workflows_rpu_workflows_result_counter,workflow_namespace)",
         "description": "workflow namespace",
         "hide": 0,
         "includeAll": true,
@@ -399,7 +399,7 @@
         "name": "workflow_namespace",
         "options": [],
         "query": {
-          "query": "label_values(argo_workflows_rpu_workflow_result_counter,workflow_namespace)",
+          "query": "label_values(argo_workflows_rpu_workflows_result_counter,workflow_namespace)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -418,7 +418,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(argo_workflows_rpu_workflow_result_counter,job_name)",
+        "definition": "label_values(argo_workflows_rpu_workflows_result_counter,job_name)",
         "description": "job name",
         "hide": 0,
         "includeAll": true,
@@ -427,7 +427,7 @@
         "name": "job_name",
         "options": [],
         "query": {
-          "query": "label_values(argo_workflows_rpu_workflow_result_counter,job_name)",
+          "query": "label_values(argo_workflows_rpu_workflows_result_counter,job_name)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
