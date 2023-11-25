@@ -1,4 +1,15 @@
 
+install:
+    prometheus-stack-upgrade;
+
+reset-colima-kube-environment:
+    colima stop;
+    colima start --kubernetes;
+    colima kube reset;
+
+
+
+
 prometheus-stack-upgrade:
     helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
             --namespace prometheus \
@@ -71,7 +82,7 @@ workflow-dag-template-submit:
 
 
 argo-workflows-server-port-forward:
-    kubectl port-forward service/argo-workflows-server 2746 -n raas-argo-workflows-system;
+    kubectl port-forward service/argo-workflows-server 2746 -n raas-argo-workflows;
 
 
 argo-workflows-ui-open:
