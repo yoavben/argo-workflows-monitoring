@@ -9,8 +9,8 @@ workflow:
   rbac:
     create: true
 controller:
-  workflowNamespaces:
-    - raas-pipeline
+#  workflowNamespaces:
+#    - raas-pipeline
   metricsConfig:
     # -- Enables prometheus metrics server
     enabled: true
@@ -20,11 +20,11 @@ controller:
 
 
 
-logging:
+#logging:
   # -- Set the logging level (one of: `debug`, `info`, `warn`, `error`)
   #  level: info
   # -- Set the glog logging level
   #  globallevel: "0"
   # -- Set the logging format (one of: `text`, `json`)
-  format: "json"
+#  format: "json"
 

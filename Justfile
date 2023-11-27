@@ -1,6 +1,7 @@
 
 install:
-    prometheus-stack-upgrade;
+    just prometheus-stack-upgrade;
+    just argo-workfklows-helm-upgrade;
 
 reset-colima-kube-environment:
     colima stop;
@@ -22,12 +23,12 @@ prometheus-stack-exporter-fix:
      kubectl -n prometheus patch ds prometheus-prometheus-node-exporter --type "json" -p '[{"op": "remove", "path" : "/spec/template/spec/containers/0/volumeMounts/2/mountPropagation"}]'
 
 
-rpu-workflows-namespace-create:
-    kubectl create namespace raas-pipeline;
+workflows-namespace-create:
+    kubectl create namespace workflows;
 
 argo-workfklows-helm-upgrade:
 	helm upgrade --install argo-workflows argo/argo-workflows \
-		--namespace raas-argo-workflows \
+		--namespace argo \
 		--create-namespace \
 		--values helm/values/argo-workflows/values.yaml;
 
@@ -65,9 +66,9 @@ grafaba-open-ui:
     open "http://localhost:8000"
 
 workflow-dag-submit-fast:
-    argo submit -n raas-pipeline k8s/dag.yaml --watch
+    argo submit  k8s/dag.yaml --watch
 workflow-dag-submit-slow:
-    argo submit -n raas-pipeline k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" --watch
 
 
 workflow-dag-template-apply:
@@ -82,7 +83,7 @@ workflow-dag-template-submit:
 
 
 argo-workflows-server-port-forward:
-    kubectl port-forward service/argo-workflows-server 2746 -n raas-argo-workflows;
+    kubectl port-forward service/argo-workflows-server 2746 -n argo;
 
 
 argo-workflows-ui-open:
