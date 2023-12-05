@@ -10,18 +10,16 @@ spec:
       - name: docker_version
         value: "2023.11.6"
       - name: delay
-        value: "0"
+        value: "6"
+      - name: fail_boardnet_converter
+        value: ""
   entrypoint: diamond
   metrics:
     prometheus:
       - name: rpu_workflows_duration_gauge
         labels:
-          - key: job_id
-            value: "{{workflow.name}}"
           - key: job_name
             value: "{{workflow.parameters.job_name}}"
-          - key: name
-            value: "{{workflow.name}}"
           - key: status
             value: "{{status}}"
           - key: workflow_namespace
@@ -31,12 +29,8 @@ spec:
           value: "{{workflow.duration}}"  # Use {{workflow.duration}} in workflow-level and {{duration}} in template-level
       - name: rpu_workflows_result_counter
         labels:
-          - key: job_id
-            value: "{{workflow.name}}"
           - key: job_name
             value: "{{workflow.parameters.job_name}}"
-          - key: name
-            value: "{{workflow.name}}"
           - key: status
             value: "{{status}}"
           - key: workflow_namespace
@@ -52,8 +46,6 @@ spec:
         prometheus:
           - name: rpu_task_result_counter
             labels:
-              - key: job_id
-                value: "{{workflow.name}}"
               - key: job_name
                 value: "{{workflow.parameters.job_name}}"
               - key: task_status
@@ -69,8 +61,6 @@ spec:
               value: "1"
           - name: rpu_task_duration_gauge
             labels:
-              - key: job_id
-                value: "{{workflow.name}}"
               - key: job_name
                 value: "{{workflow.parameters.job_name}}"
               - key: task_status
@@ -96,8 +86,6 @@ spec:
         prometheus:
           - name: rpu_task_result_counter
             labels:
-              - key: job_id
-                value: "{{workflow.name}}"
               - key: job_name
                 value: "{{workflow.parameters.job_name}}"
               - key: task_status
@@ -113,8 +101,6 @@ spec:
               value: "1"
           - name: rpu_task_duration_gauge
             labels:
-              - key: job_id
-                value: "{{workflow.name}}"
               - key: job_name
                 value: "{{workflow.parameters.job_name}}"
               - key: task_status
@@ -132,15 +118,17 @@ spec:
         parameters:
           - name: task_name
           - name: sleep_in_seconds
-            value: "{{=asInt(workflow.parameters.delay) + 5}}"
+            value: "{{=asInt(workflow.parameters.delay)}}"
           - name: exit_code
             value: "0"
           - name: docker_version
             value: "2023.11.6"
+          - name: fail_task
+            value: ""
       container:
         image: ubuntu:latest
         command: [ "/bin/bash", "-c", "--" ]
-        args: [ "sleep $((RANDOM % 3+{{inputs.parameters.sleep_in_seconds}}))" ]
+        args: [ "{{inputs.parameters.fail_task}}sleep $((RANDOM % 3+{{inputs.parameters.sleep_in_seconds}}))" ]
     - name: diamond
       dag:
         tasks:
@@ -176,6 +164,8 @@ spec:
                   value: "{{=asInt(workflow.parameters.delay) + 4}}"
                 - name: docker_version
                   value: "{{workflow.parameters.docker_version}}"
+                - name: fail_task
+                  value: "{{workflow.parameters.fail_boardnet_converter}}"
           - name: s3-downloader
             dependencies: [ s3-uploader, boardnet-converter ]
             template: sleep-long

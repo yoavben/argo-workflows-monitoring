@@ -15,12 +15,11 @@ prometheus-stack-upgrade:
     helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
             --namespace prometheus \
             --create-namespace \
-            --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
-            --set prometheus.prometheusSpec.enableAdminAPI=true ;
+            --values helm/values/kube-prometheus-stack/values.yaml;
 
 
-prometheus-stack-exporter-fix:
-     kubectl -n prometheus patch ds prometheus-prometheus-node-exporter --type "json" -p '[{"op": "remove", "path" : "/spec/template/spec/containers/0/volumeMounts/2/mountPropagation"}]'
+#prometheus-stack-exporter-fix:
+#     kubectl -n prometheus patch ds prometheus-prometheus-node-exporter --type "json" -p '[{"op": "remove", "path" : "/spec/template/spec/containers/0/volumeMounts/2/mountPropagation"}]'
 
 
 workflows-namespace-create:
@@ -66,9 +65,15 @@ grafaba-open-ui:
     open "http://localhost:8000"
 
 workflow-dag-submit-fast:
-    argo submit  k8s/dag.yaml --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.6" -p delay="0" --watch
+workflow-dag-submit-normal:
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.9" -p delay="2" --watch
 workflow-dag-submit-slow:
     argo submit  k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" --watch
+workflow-dag-submit-slowest:
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.8" -p delay="9" --watch
+workflow-dag-submit-fail_boardnet_converter:
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.10" -p delay="0" -p fail_boardnet_converter="yes" --watch
 
 
 workflow-dag-template-apply:
@@ -113,7 +118,16 @@ delete-promethues-data:
    curl -X POST http://localhost:9090/api/v1/admin/tsdb/clean_tombstones;
    curl -X 'PUT' 'http://localhost:9090/api/v1/admin/tsdb/clean_tombstones'   -H 'accept: */*';
    curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={job="argo-workflows-workflow-controller"}';
-   kubectl delete pods --all  -n raas-argo-workflows-system;
+   curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={__name__="argo_workflows_rpu_workflows_result_counter"}';
+   curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]={__name__="argo_workflows_rpu_workflows_duration_gauge"}';
+   curl -X POST -g 'http://localhost:9090/api/v1/admin/tsdb/delete_series?match[]=up&match[]=argo_workflows_rpu_workflows_duration_gauge{job="argo-workflows-workflow-controller"}'
+   curl -X PUT 'http://localhost:9090/api/v1/admin/tsdb/clean_tombstones'   -H 'accept: */*';
+   kubectl delete pod -l app.kubernetes.io/component=workflow-controller -n argo
+
+
+
+
+
 
 
 grafana-dashboars-configmap-create:

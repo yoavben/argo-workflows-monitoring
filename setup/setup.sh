@@ -19,3 +19,7 @@ brew update
 
 echo "install brew package manager to its latest version"
 brew install colima kubectl helm argo just
+
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add argo-workflows https://argoproj.github.io/argo-helm/

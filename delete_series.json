@@ -1,0 +1,14 @@
+{
+  "matchers": [
+    {
+      "type": "EQ",
+      "name": "__name__",
+      "value": "argo_workflows_rpu_workflows_duration_gauge"
+    },
+    {
+      "type": "EQ",
+      "name": "alertname",
+      "value": "argo_workflows_rpu_workflows_result_counter"
+    }
+  ]
+}
