@@ -9,20 +9,20 @@ workflow:
   rbac:
     create: true
 controller:
-#  workflowNamespaces:
-#    - raas-pipeline
+  workflowNamespaces:
+    - workflows
   metricsConfig:
     # -- Enables prometheus metrics server
     enabled: true
   serviceMonitor:
     # -- Enable a prometheus ServiceMonitor
     enabled: true
-    relabelings:
-      - regex: "__meta_kubernetes_pod_container_name"
-        action: "labeldrop"
-    metricRelabelings:
-      - regex: "__meta_kubernetes_pod_container_name"
-        action: "labeldrop"
+#    relabelings:
+#      - regex: "__meta_kubernetes_pod_container_name"
+#        action: "labeldrop"
+#    metricRelabelings:
+#      - regex: "__meta_kubernetes_pod_container_name"
+#        action: "labeldrop"
 
 #logging:
   # -- Set the logging level (one of: `debug`, `info`, `warn`, `error`)

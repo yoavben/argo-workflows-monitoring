@@ -65,15 +65,15 @@ grafaba-open-ui:
     open "http://localhost:8000"
 
 workflow-dag-submit-fast:
-    argo submit  k8s/dag.yaml -p docker_version="2023.11.6" -p delay="0" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.6" -p delay="0" -n workflows --serviceaccount argo-workflow --watch
 workflow-dag-submit-normal:
-    argo submit  k8s/dag.yaml -p docker_version="2023.11.9" -p delay="2" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.9" -p delay="2" -n workflows --serviceaccount argo-workflow --watch
 workflow-dag-submit-slow:
-    argo submit  k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.7" -p delay="5" -n workflows --serviceaccount argo-workflow --watch
 workflow-dag-submit-slowest:
-    argo submit  k8s/dag.yaml -p docker_version="2023.11.8" -p delay="9" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.8" -p delay="9" -n workflows --serviceaccount argo-workflow --watch
 workflow-dag-submit-fail_boardnet_converter:
-    argo submit  k8s/dag.yaml -p docker_version="2023.11.10" -p delay="0" -p fail_boardnet_converter="yes" --watch
+    argo submit  k8s/dag.yaml -p docker_version="2023.11.10" -p delay="0" -p fail_boardnet_converter="yes" -n workflows --serviceaccount argo-workflow --watch
 
 
 workflow-dag-template-apply:
