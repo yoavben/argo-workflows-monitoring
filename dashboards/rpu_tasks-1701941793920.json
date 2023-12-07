@@ -167,7 +167,7 @@
           "useBackend": false
         }
       ],
-      "title": "Average Task Duration by Docker Version",
+      "title": "\"$task_name\" Task Average Duration by Docker Version",
       "type": "bargauge"
     },
     {
@@ -256,7 +256,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum(rate(argo_workflows_rpu_task_result_counter{task_status=\"$task_status\"}[5m])) by (task_name)",
+          "expr": "sum(rate(argo_workflows_rpu_task_result_counter{task_status=\"$task_status\"}[1m])) by (task_name)",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
@@ -266,7 +266,7 @@
           "useBackend": false
         }
       ],
-      "title": "Success/Failed rate by tasks",
+      "title": "$task_status rate by tasks",
       "type": "timeseries"
     },
     {
@@ -402,8 +402,8 @@
       {
         "current": {
           "selected": true,
-          "text": "Succeeded",
-          "value": "Succeeded"
+          "text": "Failed",
+          "value": "Failed"
         },
         "datasource": {
           "type": "prometheus",
@@ -487,6 +487,6 @@
   "timezone": "",
   "title": "rpu_tasks",
   "uid": "b9ba6ff9-5baa-422b-a02d-f05897327abc",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
